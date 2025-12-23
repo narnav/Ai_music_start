@@ -27,3 +27,23 @@ cd music-genre-ai
 python -m venv venv
 source venv/bin/activate      # Linux/Mac
 venv\Scripts\activate         # Windows
+
+
+
+
+# our new web site - car price list
+
+the user will select car model /brand /type (X: volvo , 2012, X40)
+the prediction will be the: (Y) price
+
+the system will ha ve a pre data (300 cars...)
+
+DB - CSV
+
+backend (py - AI) /frontend (html)
+
+what model we should use????
+
+
+
+

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Genre Predictor</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .card {
+            background-color: #1e1e1e;
+            padding: 25px 30px;
+            border-radius: 12px;
+            width: 320px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 6px;
+            border: none;
+            background-color: #2c2c2c;
+            color: #fff;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .predict {
+            background-color: #6200ea;
+        }
+
+        .predict:hover {
+            background-color: #7b1fa2;
+        }
+
+        .learn {
+            background-color: #03dac6;
+            color: #000;
+        }
+
+        .learn:hover {
+            background-color: #00bfa5;
+        }
+
+        #response {
+            margin-top: 20px;
+            background-color: #2a2a2a;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h2>🎧 Genre Predictor</h2>
+
+        <form id="dataForm">
+            <label>
+                Gender
+                <select id="gender" required>
+                    <option value="">Select</option>
+                    <option value="1">Male</option>
+                    <option value="0">Female</option>
+                </select>
+            </label>
+
+            <label>
+                Age
+                <input type="number" id="age" min="0" required />
+            </label>
+
+            <div class="buttons">
+                <button type="submit" class="predict" data-action="predict">
+                    Predict
+                </button>
+                <button type="submit" class="learn" data-action="learn">
+                    LEARN
+                </button>
+            </div>
+        </form>
+
+        <div id="response"></div>
+    </div>
+
+    <script>
+        let action = "predict";
+
+        document.querySelectorAll("button[type='submit']").forEach(btn => {
+            btn.addEventListener("click", function () {
+                action = this.dataset.action;
+            });
+        });
+
+        document.getElementById("dataForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const gender = document.getElementById("gender").value;
+            const age = document.getElementById("age").value;
+
+            axios.post("http://localhost:5000/submit", {
+                gender: gender,
+                age: age,
+                action: action   // same endpoint, extra info
+            })
+            .then(response => {
+                const data = response.data;
+
+                document.getElementById("response").innerHTML = `
+                    <strong>${action.toUpperCase()} RESULT</strong><br><br>
+                    🎵 Genre: <b>${data.genre}</b><br>
+                    Age: ${data.age}<br>
+                    Gender: ${data.gender == 1 ? "Male" : "Female"}
+                `;
+            })
+            .catch(() => {
+                document.getElementById("response").innerText =
+                    "❌ Server error";
+            });
+        });
+    </script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Genre Predictor</title>
+    <title>Music Genre AI</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
     <style>
@@ -45,6 +45,10 @@
             color: #fff;
         }
 
+        .hidden {
+            display: none;
+        }
+
         .buttons {
             display: flex;
             gap: 10px;
@@ -56,13 +60,13 @@
             padding: 10px;
             border: none;
             border-radius: 6px;
-            color: white;
             font-size: 16px;
             cursor: pointer;
         }
 
         .predict {
             background-color: #6200ea;
+            color: white;
         }
 
         .predict:hover {
@@ -71,7 +75,7 @@
 
         .learn {
             background-color: #03dac6;
-            color: #000;
+            color: black;
         }
 
         .learn:hover {
@@ -89,72 +93,97 @@
 </head>
 
 <body>
-    <div class="card">
-        <h2>🎧 Genre Predictor</h2>
+<div class="card">
+    <h2>🎧 Music Genre AI</h2>
 
-        <form id="dataForm">
-            <label>
-                Gender
-                <select id="gender" required>
-                    <option value="">Select</option>
-                    <option value="1">Male</option>
-                    <option value="0">Female</option>
-                </select>
-            </label>
+    <form id="dataForm">
+        <label>
+            Gender
+            <select id="gender" required>
+                <option value="">Select</option>
+                <option value="1">Male</option>
+                <option value="0">Female</option>
+            </select>
+        </label>
 
-            <label>
-                Age
-                <input type="number" id="age" min="0" required />
-            </label>
+        <label>
+            Age
+            <input type="number" id="age" min="0" required />
+        </label>
 
-            <div class="buttons">
-                <button type="submit" class="predict" data-action="predict">
-                    Predict
-                </button>
-                <button type="submit" class="learn" data-action="learn">
-                    LEARN
-                </button>
-            </div>
-        </form>
+        <!-- Genre field only visible for LEARN -->
+        <label id="genreField" class="hidden">
+            Genre (for learning)
+            <select id="genre">
+                <option value="">Select Genre</option>
+                <option value="HipHop">HipHop</option>
+                <option value="Rock">Rock</option>
+                <option value="Jazz">Jazz</option>
+                <option value="Classical">Classical</option>
+            </select>
+        </label>
 
-        <div id="response"></div>
-    </div>
+        <div class="buttons">
+            <button type="submit" class="predict" data-action="predict">
+                Predict
+            </button>
+            <button type="submit" class="learn" data-action="learn">
+                LEARN
+            </button>
+        </div>
+    </form>
 
-    <script>
-        let action = "predict";
+    <div id="response"></div>
+</div>
 
-        document.querySelectorAll("button[type='submit']").forEach(btn => {
-            btn.addEventListener("click", function () {
-                action = this.dataset.action;
-            });
+<script>
+    let action = "predict";
+
+    // Toggle action and genre field visibility
+    document.querySelectorAll("button[type='submit']").forEach(btn => {
+        btn.addEventListener("click", function () {
+            action = this.dataset.action;
+
+            // Show genre field only for LEARN
+            document.getElementById("genreField").classList.toggle(
+                "hidden",
+                action !== "learn"
+            );
         });
+    });
 
-        document.getElementById("dataForm").addEventListener("submit", function (e) {
-            e.preventDefault();
+    document.getElementById("dataForm").addEventListener("submit", function (e) {
+        e.preventDefault();
 
-            const gender = document.getElementById("gender").value;
-            const age = document.getElementById("age").value;
+        const payload = {
+            age: document.getElementById("age").value,
+            gender: document.getElementById("gender").value
+        };
 
-            axios.post("http://localhost:5000/submit", {
-                gender: gender,
-                age: age,
-                action: action   // same endpoint, extra info
-            })
+        let url = "http://localhost:5000/submit";
+
+        if (action === "learn") {
+            // Include genre in payload when learning
+            payload.genre = document.getElementById("genre").value;
+            url = "http://localhost:5000/learn";
+        }
+
+        axios.post(url, payload)
             .then(response => {
                 const data = response.data;
 
                 document.getElementById("response").innerHTML = `
-                    <strong>${action.toUpperCase()} RESULT</strong><br><br>
-                    🎵 Genre: <b>${data.genre}</b><br>
+                    <strong>${action.toUpperCase()} SUCCESS</strong><br><br>
+                    ${data.genre ? `🎵 Genre: <b>${data.genre}</b><br>` : ""}
                     Age: ${data.age}<br>
                     Gender: ${data.gender == 1 ? "Male" : "Female"}
                 `;
             })
-            .catch(() => {
+            .catch(err => {
                 document.getElementById("response").innerText =
-                    "❌ Server error";
+                    err.response?.data?.error || "❌ Server error";
             });
-        });
-    </script>
+    });
+</script>
 </body>
 </html>
